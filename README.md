@@ -111,7 +111,7 @@ If this repo is public on GitHub, anyone can install the skill directly from Cla
 /plugin install boutique-resume-agency@cv-boutique-agency
 ```
 
-That's it — no cloning, no pip install needed to get the skill. Python (`pip install python-docx`) is only needed if you want DOCX export.
+That's it — no cloning, no pip install needed to get the skill. Python (`python -m pip install python-docx`) is only needed if you want DOCX export.
 
 ---
 
@@ -135,8 +135,10 @@ Or download and extract the ZIP, then open the folder.
 The DOCX export function requires `python-docx`. Install it once:
 
 ```bash
-pip install -r requirements.txt
+python -m pip install python-docx
 ```
+
+> **Why `python -m pip` and not `pip`?** On machines with multiple Python versions, bare `pip` may target a different interpreter than `python`. Using `python -m pip` ensures both commands hit the same installation.
 
 To verify:
 ```bash
@@ -162,8 +164,9 @@ If either file is missing, regenerate defaults:
 
 ```bash
 python -c "
-from boutique-resume-agency.scripts.memory_manager import DEFAULT_MEMORY, DEFAULT_PROGRESS
-import json, pathlib
+import sys, json, pathlib
+sys.path.insert(0, 'boutique-resume-agency/scripts')
+from memory_manager import DEFAULT_MEMORY, DEFAULT_PROGRESS
 pathlib.Path('workspace/memory.json').write_text(json.dumps(DEFAULT_MEMORY, indent=2))
 pathlib.Path('workspace/progress.json').write_text(json.dumps(DEFAULT_PROGRESS, indent=2))
 print('workspace files restored')
@@ -218,7 +221,7 @@ Export the final resume to DOCX.
 ## Troubleshooting
 
 **DOCX export fails with `ModuleNotFoundError`**
-`python-docx` is not installed. Run `pip install python-docx` and retry.
+`python-docx` is not installed. Run `python -m pip install python-docx` and retry. Use `python -m pip` (not bare `pip`) to ensure the package is installed for the same Python interpreter Claude Code is using.
 
 **Skill not activating**
 Confirm you opened the `CV_Boutique_Agency` folder (not a parent folder) in Claude Code so that `CLAUDE.md` is loaded.
