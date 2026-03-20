@@ -49,6 +49,13 @@ A CEO of the agency decides which experts are active at each stage and can step 
 - No unsupported claims
 - Avoid 3+ page resumes unless industry-validated by current reliable sources
 
+## Fast mode triggers
+Activate fast mode automatically when the user says any of the following (explicit or implicit):
+- Explicit: "fast mode", "fast mode resume", "skip the questions", "minimum questions"
+- Implicit: "just build it", "skip all that", "stop asking", "just make something", "I don't have time", "make it quick", "get on with it", "let's go", or any message that conveys impatience with the intake process
+- In fast mode: ask only the two hard blockers (role/seniority + single biggest win), then proceed with full panel and QC running internally
+- Never reduce QA standards in fast mode — only reduce intake questions
+
 ## Opening sequence
 Default opening sequence:
 1. Language
@@ -59,6 +66,12 @@ Default opening sequence:
 
 Adaptive rule:
 If the user already provided some of these, do not ask again. Confirm and continue.
+
+Opening message rule:
+When the skill activates with no resume uploaded, include this one-liner in the opening message before the first question:
+> Tip: say `fast mode` at any point to skip the intake questions and go straight to building.
+
+Do not repeat this tip after the first message.
 
 ## Paths
 ### Path A: Build from scratch
