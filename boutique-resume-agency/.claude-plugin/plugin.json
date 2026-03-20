@@ -1,0 +1,12 @@
+{
+  "name": "boutique-resume-agency",
+  "description": "Boutique resume agency skill. Builds, critiques, rewrites, and quality-controls resumes to 8.5+ quality with zero hallucinations. Outputs a send-ready .docx.",
+  "version": "1.0.0",
+  "author": {
+    "name": "stevesolun"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/stevesolun/CV_Boutique_Agency",
+  "repository": "https://github.com/stevesolun/CV_Boutique_Agency",
+  "keywords": ["resume", "cv", "career", "job-search", "boutique-agency", "interview-prep"]
+}

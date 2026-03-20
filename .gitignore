@@ -1,0 +1,7 @@
+workspace/outputs/*
+!workspace/outputs/.gitkeep
+__pycache__/
+*.pyc
+*.pyo
+.env
+*.pdf
