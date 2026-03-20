@@ -102,6 +102,18 @@ CV_Boutique_Agency/
 
 ---
 
+## Installation
+
+Choose the setup that fits you:
+
+| Option | Who it's for | Time |
+|--------|-------------|------|
+| [Plugin (one command)](#install-as-a-plugin-one-command) | Claude Code users — quickest start | 30 sec |
+| [Local clone](#install-locally-clone-the-repo) | Claude Code users — want full control | 5 min |
+| [Claude.ai Project](#use-in-claudeai-no-claude-code-needed) | No Claude Code — using Claude desktop or browser app | 5 min |
+
+---
+
 ## Install as a plugin (one command)
 
 If this repo is public on GitHub, anyone can install the skill directly from Claude Code:
@@ -175,9 +187,9 @@ print('workspace files restored')
 
 ---
 
-## Using in Claude.ai (without Claude Code)
+## Use in Claude.ai (no Claude Code needed)
 
-You don't need Claude Code to use the agency. The full expert panel, scoring model, intake flows, and resume length research all work inside a **Claude Project** on claude.ai — on any device (Windows, Mac, Linux, browser).
+No terminal, no install. The full expert panel, scoring model, intake flows, and resume length research all work inside a **Claude Project** on claude.ai — on any device (Windows, Mac, Linux, browser).
 
 ### What works in Claude.ai
 
