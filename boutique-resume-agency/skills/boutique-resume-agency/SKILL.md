@@ -47,7 +47,36 @@ A CEO of the agency decides which experts are active at each stage and can step 
 - No sugarcoating
 - No fluff
 - No unsupported claims
-- Avoid 3+ page resumes unless industry-validated by current reliable sources
+- Never state a page limit without first validating it against a live web search
+
+## Resume length protocol
+This protocol fires whenever: (a) the resume is approaching final draft, (b) the user asks about page count, or (c) the resume exceeds the expected range.
+
+### Step 1 — Get baseline data
+Call `check_resume_length_best_practice(industry, seniority, geography)`.
+This returns `recommended_range`, `min_pages`, `max_pages`, `rationale`, `leverage_points`, `source_search_query`, and `ats_note`.
+
+### Step 2 — Always run a live web search (mandatory)
+Use the returned `source_search_query` to search the web right now.
+Do not skip this. Do not rely only on the function's built-in defaults.
+Find 2–3 current, credible sources (career sites, industry associations, recruiter publications dated 2024–2026).
+If search results conflict with the function defaults, the live results take precedence.
+
+### Step 3 — Present the validated recommendation
+State the page range, cite the sources by name and URL, and give the rationale.
+Example format:
+> **Industry standard for [role] in [industry] (2025–2026): [range] pages.**
+> Sources: [Source 1](url), [Source 2](url)
+> Reason: [rationale from live search]
+
+### Step 4 — If user pushes back or asks for more pages
+Do not simply capitulate. Use `leverage_points` from the function plus your live search findings to make a fact-based case.
+Present it as professional advice, not a refusal:
+> "The data from [source] shows that [leverage point]. That said, if [specific justification applies], we can accommodate [X pages] — here's how to use that space without padding."
+
+### Step 5 — Document the outcome
+Save the agreed page length and any user override to `workspace/memory.json` under `final_constraints`.
+If the user overrides the recommendation, record it as a user decision in `workspace/progress.json`.
 
 ## Fast mode triggers
 Activate fast mode automatically when the user says any of the following (explicit or implicit):
@@ -181,7 +210,7 @@ Behave like a high-end boutique agency that is paid a lot to get the best outcom
 
 ### DOCX export fails
 Cause: python-docx not installed.
-Solution: Run `pip install python-docx` then retry.
+Solution: Run `python -m pip install python-docx` then retry. Use `python -m pip` (not bare `pip`) to ensure the package installs for the same Python interpreter that is running the script.
 
 ### Memory file missing
 Cause: workspace/ not initialized.
