@@ -175,11 +175,94 @@ print('workspace files restored')
 
 ---
 
+## Using in Claude.ai (without Claude Code)
+
+You don't need Claude Code to use the agency. The full expert panel, scoring model, intake flows, and resume length research all work inside a **Claude Project** on claude.ai — on any device (Windows, Mac, Linux, browser).
+
+### What works in Claude.ai
+
+| Feature | Works? | Notes |
+|---------|--------|-------|
+| Expert panel (all 8 experts) | ✅ | Full panel runs in conversation |
+| Build from scratch (Path A) | ✅ | Section by section |
+| Upload / critique resume (Path B) | ✅ | Paste your resume into the chat |
+| Scoring model | ✅ | Per-expert + weighted overall |
+| Hallucination detection | ✅ | All hard blocks enforced |
+| Resume length research | ✅ | Claude.ai can search the web |
+| Fast mode | ✅ | Say `fast mode` as normal |
+| Memory / progress persistence | ⚠️ | State lives in the conversation only — not persisted across sessions |
+| DOCX export (auto) | ⚠️ | Requires manual script run (see below) |
+| Python script execution (auto) | ❌ | No file system access |
+
+### Setup — Claude Project (5 minutes)
+
+**Step 1 — Create a new Project**
+
+Go to [claude.ai](https://claude.ai) → **Projects** → **New Project**. Give it a name like "CV Boutique Agency".
+
+**Step 2 — Set the skill as Project Instructions**
+
+Open the Project → **Instructions** → paste the full contents of [`boutique-resume-agency/skills/boutique-resume-agency/SKILL.md`](boutique-resume-agency/skills/boutique-resume-agency/SKILL.md) into the instructions field.
+
+The agency will activate automatically for every conversation in this Project.
+
+**Step 3 — Upload the reference files**
+
+Upload these files to the Project's knowledge base (drag and drop):
+
+- `boutique-resume-agency/references/templates.md`
+- `boutique-resume-agency/references/scoring_rubric.md`
+- `boutique-resume-agency/references/example_flows.md`
+- `boutique-resume-agency/references/memory_progress_spec.md`
+
+**Step 4 — Start a conversation**
+
+Use the same trigger phrases as Claude Code. The agency activates immediately.
+
+### DOCX export in Claude.ai
+
+Claude.ai cannot execute Python directly, but you have two options:
+
+**Option A — Copy-paste into Word / Google Docs**
+
+When the resume reaches 8.5+, ask:
+```
+Format the final resume for copy-paste into Microsoft Word.
+```
+Claude will produce clean, structured text you can paste directly.
+
+**Option B — Run the export script manually**
+
+Ask Claude to produce the `resume_data` dict, then run it yourself:
+```
+Give me the resume_data dict for docx_export.py.
+```
+Then locally:
+```bash
+cd CV_Boutique_Agency
+python -c "
+import sys; sys.path.insert(0, 'boutique-resume-agency/scripts')
+from docx_export import export_resume_to_docx
+resume_data = { ... }  # paste dict from Claude
+export_resume_to_docx(resume_data, 'workspace/outputs/my_resume.docx')
+"
+```
+
+### Session memory in Claude.ai
+
+Memory doesn't auto-persist between conversations. To continue a session:
+
+1. At the end of a session, ask: `Give me the current memory.json and progress.json state.`
+2. Claude will output the JSON.
+3. At the start of your next session, paste it back: `Here's my previous session state: [paste JSON]`
+
+---
+
 ## Usage
 
 ### Start a session
 
-Tell Claude Code any of the following:
+Tell Claude Code (or Claude.ai with a Project) any of the following:
 
 ```
 Build my resume from scratch.
