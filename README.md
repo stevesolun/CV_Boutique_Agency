@@ -66,6 +66,8 @@ Each expert scores independently. A weighted overall score is computed. The skil
 
 **Optional extras:** tailored variants, LinkedIn summary, cover letter starter, interview talking points
 
+**Fun epilogue:** once your resume is delivered, the agency offers to channel a famous figure from your industry (or a historical wildcard) for a 3–4 sentence in-character reaction to your resume — Elon Musk, Warren Buffett, Marie Curie, Sun Tzu, and more. Purely for fun; zero effect on the resume or scores.
+
 ---
 
 ## Repository layout
