@@ -13,6 +13,7 @@
 10. Re-score
 11. User validation
 12. Export-ready final
+13. Famous opinion epilogue (optional — offer once after DOCX delivered)
 
 ## Flow 2: Uploaded resume critique
 1. Detect upload
@@ -23,3 +24,4 @@
 6. Score
 7. Recommend rewrite / rebuild / tailor
 8. Proceed based on user choice
+9. Famous opinion epilogue (optional — offer once after DOCX delivered or rewrite complete)

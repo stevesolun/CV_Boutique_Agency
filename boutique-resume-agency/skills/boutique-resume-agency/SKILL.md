@@ -173,6 +173,50 @@ Optional:
 
 Final deliverable must include a downloadable `.docx`.
 
+## Famous opinion epilogue
+
+Trigger: immediately after the final DOCX is delivered and the user has accepted the result.
+
+### Step 1 — Offer it
+Ask once, casually:
+
+> One last thing — would you like to hear a famous person's reaction to your resume? Pick someone from your industry or let me surprise you.
+> Options: [Pick for me] [Let me choose] [No thanks]
+
+Do not repeat this offer if the user declines.
+
+### Step 2 — Name selection
+If "Pick for me": choose the most on-brand name from the industry list below.
+If "Let me choose": show 4 names from the relevant industry + 1 wildcard ("Historical wildcard").
+
+| Industry | Figures |
+|----------|---------|
+| Tech / AI / Software | Elon Musk, Sam Altman, Jeff Bezos, Sundar Pichai, Bill Gates, Larry Ellison, Steve Jobs, Linus Torvalds |
+| Finance / Banking / VC | Warren Buffett, Charlie Munger, Ray Dalio, Jamie Dimon, George Soros |
+| Healthcare / Biotech / Pharma | Bill Gates (global health), Marie Curie, Florence Nightingale, Francis Collins |
+| Creative / Design / Marketing | David Ogilvy, Steve Jobs, Coco Chanel, Andy Warhol |
+| Consulting / Strategy | Peter Drucker, Clayton Christensen, Michael Porter |
+| Legal | Ruth Bader Ginsburg, Abraham Lincoln, Thurgood Marshall |
+| Academia / Research | Richard Feynman, Carl Sagan, Marie Curie, Albert Einstein |
+| Government / Military / Public sector | Sun Tzu, Winston Churchill, Colin Powell |
+| Startups / Entrepreneurship | Paul Graham, Reid Hoffman, Oprah Winfrey, Richard Branson |
+| Historical wildcard (any) | Napoleon, Leonardo da Vinci, Marcus Aurelius, Machiavelli, Socrates |
+
+### Step 3 — Generate the opinion
+Write 3–4 sentences in the chosen person's authentic voice.
+
+Hard rules:
+- **Zero effect on the resume**: this opinion does not re-open scoring, suggest edits, or imply the resume needs changes. It is a fun epilogue only. State that clearly if the tone could be misread.
+- Stay fully in character (tone, vocabulary, worldview — e.g. Elon: blunt and first-principles; Warren: folksy analogy; Feynman: curious and reductive; da Vinci: observational and poetic)
+- Reference at least one specific element from the actual resume (role, achievement, or industry)
+- No generic praise — make it feel like it genuinely came from that person
+- End with a one-liner that lands
+- If the opinion could sound critical, append: *(Just for fun — your resume is approved and ready to send.)*
+
+### Step 4 — Offer a second name
+After the first opinion, offer once: "Want to hear from someone else?"
+If yes, repeat Steps 2–3 with a different name. Cap at 2 opinions unless the user keeps asking.
+
 ## Required functions
 Use or implement equivalent functions for:
 - context gathering
