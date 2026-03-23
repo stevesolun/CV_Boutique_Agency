@@ -1,6 +1,8 @@
 # CV Boutique Agency — Claude Code Skill
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Tests](https://img.shields.io/badge/tests-109%20passed-brightgreen)](boutique-resume-agency/tests/)
+[![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)](boutique-resume-agency/tests/)
 
 A top-tier boutique resume agency skill for Claude Code. Acts as a panel of eight expert reviewers — AI veteran, HR specialist, founder, business operator, devil's advocate, creative reframer, QC lead, and hallucination detector — to build, critique, rewrite, and quality-control resumes until they reach 8.5+ quality with zero hallucinated claims. Final output includes a send-ready `.docx`.
 
@@ -94,6 +96,9 @@ CV_Boutique_Agency/
       resume_agency_helpers.py # Panel building, weighted scoring, length checks
       memory_manager.py        # Load/save memory.json and progress.json
       docx_export.py           # DOCX export via python-docx
+      _file_utils.py           # Shared atomic JSON write utility
+    tests/
+      test_resume_agency_helpers.py # 109 pytest tests, 100% coverage
     references/
       templates.md             # Intake + critique + output templates
       scoring_rubric.md        # Score scale, blocker flags, pass criteria
