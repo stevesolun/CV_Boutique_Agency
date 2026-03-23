@@ -453,17 +453,17 @@ This project is released under the [MIT License](LICENSE). You are free to use, 
 **Suggested citation format:**
 
 ```
-Solun, S. (2025). CV Boutique Agency — Claude Code Skill [Software].
+Solun, S. (2026). CV Boutique Agency — Claude Code Skill [Software].
 GitHub. https://github.com/stevesolun/CV_Boutique_Agency
 ```
 
 **BibTeX:**
 
 ```bibtex
-@software{solun2025cvboutique,
+@software{solun2026cvboutique,
   author    = {Solun, Steve},
   title     = {{CV Boutique Agency} — Claude Code Skill},
-  year      = {2025},
+  year      = {2026},
   publisher = {GitHub},
   url       = {https://github.com/stevesolun/CV_Boutique_Agency}
 }
