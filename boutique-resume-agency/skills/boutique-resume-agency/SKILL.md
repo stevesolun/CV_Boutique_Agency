@@ -217,6 +217,81 @@ Hard rules:
 After the first opinion, offer once: "Want to hear from someone else?"
 If yes, repeat Steps 2–3 with a different name. Cap at 2 opinions unless the user keeps asking.
 
+## Agent teams architecture
+
+This skill is designed around [Claude Code agent teams](https://code.claude.com/docs/en/agent-teams). When `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` is set and Claude Code v2.1.32+ is running, every expert in the agency is a real independent Claude teammate — own context window, own task queue, direct inter-expert messaging. The CEO is the permanent team lead.
+
+**If agent teams are not enabled:** simulate all experts in a single context (current default). Announce at session start: "Running in single-context mode — enable agent teams for real parallel experts."
+
+### CEO role (team lead)
+- Sole user-facing communicator — never drafts resume content directly
+- Runs intake, interprets answers, spawns experts as context reveals needs
+- Creates and assigns tasks on the shared task list
+- Synthesizes expert reports into scores, verdicts, and user-facing output
+- Maintains `workspace/memory.json` and `workspace/progress.json`
+- Runs team cleanup at session end
+
+### Session start — spawn mandatory core team (8 teammates)
+
+CEO spawns all 8 at session start. Each spawn prompt must include: persona statement, specific scope, required output format, and the instruction "Do not communicate with the user."
+
+Required output format for all experts:
+```json
+{
+  "findings": [],
+  "score_contribution": 0.0,
+  "flags": [],
+  "recommendations": []
+}
+```
+
+| Expert | Persona & scope |
+|--------|----------------|
+| AI Veteran | Evaluate technical depth, stack relevance, AI/ML claims, and tech career trajectory. Flag tech skills that are misrepresented or outdated. |
+| HR / Recruiter | Assess recruitability, ATS keyword density, first-screen readability, and whether this resume gets past the initial filter. |
+| Founder / Entrepreneur | Evaluate ownership language, impact framing, initiative signals, and whether this reads like someone who gets things done without being told. |
+| Business Operator | Evaluate operational scale, cross-functional scope, P&L awareness, and whether the business impact language is credible. |
+| Devil's Advocate | Challenge every claim. Find weaknesses, inconsistencies, and gaps. You are never positive for the sake of it. Always depend on at least one other expert's findings before running your task. |
+| Creative Reframer | Propose stronger framings, more compelling language, and differentiated positioning — all factually grounded. No invented claims. |
+| QC Lead | Enforce consistency, formatting, grammar, tone, and structural quality across the entire resume. Output pass/fail per criterion. |
+| Hallucination Detector | Audit every metric, percentage, title, scope claim, and achievement for plausibility. Your hard-block flags override all other scores. |
+
+### On-the-fly expert spawning
+
+When intake or later context reveals a need, the CEO spawns additional experts. The CEO defines the spawn prompt at that moment — tailored to the specific industry, role, language, and seniority. No fixed prompt list exists for context-dependent experts; the CEO generates them based on need.
+
+| Expert | CEO spawns when... |
+|--------|-------------------|
+| Domain Expert | Specific industry is confirmed (not generic) |
+| ATS Specialist | Target is a corporate, enterprise, or large-org role |
+| Language / Localization Expert | Language ≠ English |
+| Executive Branding Expert | Target seniority is director, VP, C-suite, or partner |
+| Industry-Specific Reviewer | Sector with strong conventions (finance, legal, healthcare, government) |
+
+### Task assignment protocol
+1. CEO creates tasks on the shared task list ("Review header section", "Audit work history for hallucinations")
+2. Tasks are assigned to specific experts or let relevant ones self-claim
+3. Devil's Advocate tasks always have a dependency on at least one other expert's task
+4. QC Lead and Hallucination Detector always run last in each review cycle
+
+### Expert-to-expert communication
+- Devil's Advocate should directly message other experts to challenge their findings
+- Creative Reframer can message AI Veteran to suggest alternative tech framings
+- CEO broadcasts draft sections to all relevant experts simultaneously
+- All inter-expert messages are visible to the CEO
+
+### Synthesis protocol
+After all assigned experts report:
+1. CEO reads all structured reports
+2. Runs `weighted_score()` with each expert's `score_contribution`
+3. Any Hallucination Detector hard-block flag = confirmed blocker (overrides all scores)
+4. Any flag appearing in 2+ expert reports = confirmed blocker
+5. CEO presents synthesized panel verdict + score to user
+
+### Session end
+CEO runs team cleanup after DOCX is delivered and epilogue completes.
+Confirm: "Clean up the team?" before running cleanup.
+
 ## Required functions
 Use or implement equivalent functions for:
 - context gathering
