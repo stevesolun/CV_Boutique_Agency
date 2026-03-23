@@ -12,6 +12,8 @@ from resume_agency_helpers import (
     weighted_score,
     DEFAULT_WEIGHTS,
     check_resume_length_best_practice,
+    save_json,
+    load_json,
 )
 
 
@@ -245,3 +247,64 @@ class TestCheckResumeLengthBestPractice:
         # More precisely: seniority fallback should kick in for retail
         # Just verify it doesn't crash and returns a valid range
         assert isinstance(result["recommended_range"], str)
+
+    def test_staff_engineer_maps_to_senior_bucket(self):
+        """'staff' keyword in seniority should route to the senior fallback bucket."""
+        result = check_resume_length_best_practice("unknown_industry_xyz", "staff engineer")
+        # senior bucket default range is "2–3"
+        assert result["recommended_range"] == "2–3"
+
+    def test_lead_developer_maps_to_senior_bucket(self):
+        """'lead' keyword in seniority should route to the senior fallback bucket."""
+        result = check_resume_length_best_practice("unknown_industry_xyz", "lead developer")
+        assert result["recommended_range"] == "2–3"
+
+    def test_principal_engineer_maps_to_senior_bucket(self):
+        """'principal' keyword in seniority should route to the senior fallback bucket."""
+        result = check_resume_length_best_practice("unknown_industry_xyz", "principal engineer")
+        assert result["recommended_range"] == "2–3"
+
+
+# ---------------------------------------------------------------------------
+# save_json / load_json utilities
+# ---------------------------------------------------------------------------
+
+class TestSaveJson:
+    def test_saves_dict_to_file(self, tmp_path):
+        target = str(tmp_path / "out.json")
+        save_json(target, {"key": "value", "num": 42})
+        import json, pathlib
+        content = json.loads(pathlib.Path(target).read_text(encoding="utf-8"))
+        assert content == {"key": "value", "num": 42}
+
+    def test_creates_parent_directories(self, tmp_path):
+        target = str(tmp_path / "nested" / "dir" / "data.json")
+        save_json(target, {"x": 1})
+        import pathlib
+        assert pathlib.Path(target).exists()
+
+    def test_accepts_path_object(self, tmp_path):
+        import pathlib
+        target = tmp_path / "data.json"
+        save_json(target, {"a": "b"})
+        assert target.exists()
+
+
+class TestLoadJson:
+    def test_loads_existing_file(self, tmp_path):
+        import json, pathlib
+        target = tmp_path / "data.json"
+        target.write_text(json.dumps({"hello": "world"}), encoding="utf-8")
+        result = load_json(str(target))
+        assert result == {"hello": "world"}
+
+    def test_returns_empty_dict_for_missing_file(self, tmp_path):
+        result = load_json(str(tmp_path / "nonexistent.json"))
+        assert result == {}
+
+    def test_roundtrip_save_and_load(self, tmp_path):
+        target = str(tmp_path / "roundtrip.json")
+        data = {"unicode": "résumé", "nested": {"a": [1, 2, 3]}}
+        save_json(target, data)
+        loaded = load_json(target)
+        assert loaded == data
