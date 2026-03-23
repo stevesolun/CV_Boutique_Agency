@@ -1,5 +1,7 @@
 # CV Boutique Agency — Claude Code Skill
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 A top-tier boutique resume agency skill for Claude Code. Acts as a panel of eight expert reviewers — AI veteran, HR specialist, founder, business operator, devil's advocate, creative reframer, QC lead, and hallucination detector — to build, critique, rewrite, and quality-control resumes until they reach 8.5+ quality with zero hallucinated claims. Final output includes a send-ready `.docx`.
 
 ---
@@ -31,11 +33,13 @@ Ask only the minimum blocking questions, run the full agency process behind the 
 7. Quality-control lead
 8. Hallucination detector
 
-**Context-dependent additions:**
+**Context-dependent additions** (spawned by the CEO as context reveals the need):
 - Domain expert + industry-specific reviewer (when industry is provided)
 - Language / localization expert (when language ≠ English)
-- ATS specialist
-- Executive branding expert
+- ATS specialist (corporate / large org targets)
+- Executive branding expert (director+ / C-suite / partner roles)
+
+When Claude Code agent teams are enabled, each of these experts runs as a **real independent Claude instance** — own context window, own task, direct inter-expert messaging. See [Agent teams architecture](#agent-teams-architecture-experimental) below.
 
 ### Scoring model
 Each expert scores independently. A weighted overall score is computed. The skill also maintains internal per-section scores and tracks critical blocker flags. It stops only when all three stop conditions are met: score ≥ 8.5, zero blockers, user acceptance.
@@ -76,7 +80,6 @@ Each expert scores independently. A weighted overall score is computed. The skil
 CV_Boutique_Agency/
   CLAUDE.md                    # Wires skill to this project
   README.md                    # This file
-  install_and_use.md           # Detailed installation guide
   requirements.txt             # Python dependency (python-docx)
   .gitignore
   .claude-plugin/              # Marketplace catalog (plugin distribution)
@@ -328,6 +331,48 @@ There are unresolved critical blocker flags. Review `boutique-resume-agency/refe
 
 **Memory or progress file corrupted**
 Delete the affected file and let the skill regenerate it, or run the restore script in Step 4 above.
+
+---
+
+## Agent teams architecture (experimental)
+
+The boutique resume agency is designed around [Claude Code agent teams](https://code.claude.com/docs/en/agent-teams). When enabled, every expert is a real independent Claude instance — not simulated in a single context. The CEO is the permanent team lead; all panel members are teammates.
+
+### How it works
+
+| Component | Role |
+|-----------|------|
+| **CEO (team lead)** | All user communication, intake, expert spawning, task assignment, synthesis, memory management |
+| **8 core experts (teammates)** | Spawned at session start; each has own context, defined persona, and structured output format |
+| **Context-dependent experts** | Spawned on-the-fly by CEO as intake answers reveal the need |
+
+**On-the-fly spawning:** When the CEO learns you're targeting a specific industry, a senior role, a non-English language, or a sector with strong conventions (finance, legal, healthcare, government), it spawns the appropriate specialist at that moment — defining the spawn prompt based on your exact context.
+
+**Expert-to-expert communication:** Teammates can message each other directly. The Devil's Advocate challenges other experts' findings. The Creative Reframer can push back on the AI Veteran's framing suggestions. All exchanges are visible to the CEO.
+
+**Fallback:** If agent teams are not enabled, the CEO simulates all experts in a single context (current default behavior). The CEO notes this at session start.
+
+### Prerequisites
+
+```json
+// settings.json
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  }
+}
+```
+
+- Claude Code v2.1.32 or later (`claude --version`)
+- Feature is experimental — see [known limitations](https://code.claude.com/docs/en/agent-teams#limitations)
+
+### Token cost
+
+Token usage scales with the number of active teammates (8–13 experts). Each teammate has its own full context window. For short or fast-mode sessions, the single-context fallback is more cost-efficient.
+
+### Windows / VS Code note
+
+Split-pane mode requires tmux or iTerm2 and is not supported in VS Code's integrated terminal or Windows Terminal. In-process mode (default) works everywhere. Use Shift+Down to cycle between active expert sessions.
 
 ---
 
