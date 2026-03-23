@@ -7,5 +7,7 @@
   "approved_sections": {},
   "forbidden_claims": [],
   "open_questions": [],
-  "final_constraints": []
+  "final_constraints": [],
+  "language": "",
+  "intentional_transition": false
 }

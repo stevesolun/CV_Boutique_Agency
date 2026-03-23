@@ -282,6 +282,32 @@ Memory doesn't auto-persist between conversations. To continue a session:
 
 ## Usage
 
+### Mode reference
+
+| Mode | How to activate | What happens |
+|------|----------------|--------------|
+| **Tier 1 — Simulation** (default) | Just start a session — no config needed | CEO simulates all 8+ experts in one context window. Works on Claude.ai, Claude Code, any subscription tier. |
+| **Tier 2 — Agent teams** (experimental) | Enable `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in settings.json + Claude Code v2.1.32+ | Every expert runs as a real independent Claude instance with its own context. See [Agent teams architecture](#agent-teams-architecture-experimental). |
+| **Fast mode** | Say `fast mode` or `/fast` at any point | Skips non-critical intake questions. Full agency logic runs behind the scenes. All QA and hallucination controls still enforced. |
+| **Interactive mode** (default) | No phrase needed, or say `interactive mode` | One section at a time, full back-and-forth with the panel. |
+| **Build from scratch** | `build my resume` | Full intake → section-by-section build → score → export |
+| **Critique / rewrite** | Paste resume + `critique my resume` | Executive verdict, per-section scores, fix list |
+| **Tailor to JD** | `tailor my resume for this JD:` + paste JD | Gap analysis, fit score, tailored version |
+
+### Toggling fast mode
+
+Say `fast mode` at any point in the session (or prefix the session opener: `fast mode. build my resume`). In Claude Code you can also use `/fast` from the status line.
+
+Fast mode skips geography, company stage, and other optional intake questions. The agency asks only the minimum blocking questions (language, path, industry/role) and then works autonomously.
+
+To return to interactive mode, say `interactive mode` or `standard mode`.
+
+### Toggling Tier 2 (agent teams)
+
+See [Tier 2 setup](#tier-2-setup-claude-code) in the Agent teams section. To disable, remove `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` from `settings.json` — the agency falls back to Tier 1 simulation automatically with no change to the user experience.
+
+---
+
 ### Start a session
 
 Tell Claude Code (or Claude.ai with a Project) any of the following:
