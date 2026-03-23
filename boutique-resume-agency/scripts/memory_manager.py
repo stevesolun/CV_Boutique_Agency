@@ -19,7 +19,7 @@ DEFAULT_MEMORY = {
 }
 
 DEFAULT_PROGRESS = {
-    "current_stage": "",
+    "current_stage": "intake",
     "stage_history": [],
     "scores_by_stage": [],
     "section_scores": {},

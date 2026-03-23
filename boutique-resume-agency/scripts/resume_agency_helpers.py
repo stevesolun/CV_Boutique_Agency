@@ -294,10 +294,11 @@ def build_panel(context: ResumeContext) -> Dict[str, Any]:
     if lang and lang not in _ENGLISH_CODES:
         optional.append("Language / localization expert")
 
-    # ATS specialist: add when there is a JD or when company stage is not clearly a startup/solo
+    # ATS specialist: add when there is a JD, or when company stage is explicitly non-startup.
+    # No-stage + no-JD → no positive signal → omit ATS (avoids over-inclusion).
     stage = (context.company_stage or "").lower().strip()
     is_startup = any(s in stage for s in _STARTUP_STAGES) if stage else False
-    if context.job_description or not is_startup:
+    if context.job_description or (stage and not is_startup):
         optional.append("ATS specialist")
 
     # Executive branding expert: add only for director+ / C-suite / partner seniority
@@ -341,6 +342,11 @@ def weighted_score(
         if k in weights and v is not None and isinstance(v, (int, float))
     }
     if not used:
+        if scores:
+            raise ValueError(
+                f"weighted_score() received no matching score keys. "
+                f"Known keys: {sorted(weights)}. Got: {sorted(scores)}"
+            )
         return 0.0
     total_weight = sum(weights[k] for k in used)
     raw = sum(used[k] * weights[k] for k in used) / total_weight

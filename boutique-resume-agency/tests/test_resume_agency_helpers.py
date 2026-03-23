@@ -84,11 +84,11 @@ class TestBuildPanelATS:
         panel = build_panel(ctx)
         assert "ATS specialist" in panel["optional"]
 
-    def test_no_company_stage_adds_ats(self):
-        """No stage info → assume non-startup → include ATS."""
+    def test_no_company_stage_no_ats_without_jd(self):
+        """No stage and no JD → no positive signal → omit ATS."""
         ctx = ResumeContext(language="english", company_stage=None, job_description=None)
         panel = build_panel(ctx)
-        assert "ATS specialist" in panel["optional"]
+        assert "ATS specialist" not in panel["optional"]
 
     def test_enterprise_stage_adds_ats(self):
         ctx = ResumeContext(language="english", company_stage="series-c", job_description=None)
@@ -158,10 +158,10 @@ class TestWeightedScore:
         result = weighted_score({})
         assert result == 0.0
 
-    def test_scores_not_in_weights_ignored(self):
+    def test_scores_not_in_weights_raises_value_error(self):
         scores = {"qc_lead": 10.0, "devil_advocate": 10.0}  # not in DEFAULT_WEIGHTS
-        result = weighted_score(scores)
-        assert result == 0.0
+        with pytest.raises(ValueError, match="weighted_score\\(\\)"):
+            weighted_score(scores)
 
     def test_custom_weights(self):
         scores = {"a": 8.0, "b": 10.0}
