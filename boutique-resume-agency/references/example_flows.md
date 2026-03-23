@@ -13,7 +13,7 @@
 10. Re-score
 11. User validation
 12. Export-ready final
-13. Famous opinion epilogue (optional — offer once after DOCX delivered)
+13. Famous opinion epilogue (optional — offer once after final DOCX is delivered and accepted)
 
 ## Flow 2: Uploaded resume critique
 1. Detect upload

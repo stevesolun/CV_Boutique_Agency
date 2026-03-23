@@ -18,12 +18,12 @@ DEFAULT_WEIGHTS: Dict[str, float] = {
 }
 
 @dataclass
-class PanelContext:
+class ResumeContext:
     """Context used to build the expert panel.
 
     Example::
 
-        ctx = PanelContext(
+        ctx = ResumeContext(
             language="english",
             industry="fintech",
             role="VP Engineering",
@@ -42,7 +42,7 @@ class PanelContext:
     job_description: Optional[str] = None
 
 
-def build_panel(context: PanelContext) -> Dict[str, Any]:
+def build_panel(context: ResumeContext) -> Dict[str, Any]:
     """Return core and optional expert lists for the given context.
 
     Always returns the 8 mandatory core experts.
