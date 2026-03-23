@@ -4,6 +4,8 @@
 [![Tests](https://img.shields.io/badge/tests-204%20passed-brightgreen)](boutique-resume-agency/tests/)
 [![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)](boutique-resume-agency/tests/)
 
+If you use or adapt this project, a credit or link back to this repository is appreciated — see [Citation / credit](#citation--credit).
+
 A top-tier boutique resume agency skill for Claude Code. Acts as a panel of eight expert reviewers — AI veteran, HR specialist, founder, business operator, devil's advocate, creative reframer, QC lead, and hallucination detector — to build, critique, rewrite, and quality-control resumes until they reach 8.5+ quality with zero hallucinated claims. Final output includes a send-ready `.docx`.
 
 ---
@@ -441,3 +443,28 @@ In-process mode (default) works on Windows and in VS Code's integrated terminal.
 | Minimum to stop | 8.5+ | Send-ready |
 | Strong target | 9.0+ | Must-call quality |
 | Exceptional | 9.5+ | Rare — only when evidence fully supports it |
+
+---
+
+## Citation / credit
+
+This project is released under the [MIT License](LICENSE). You are free to use, adapt, and redistribute it. If you use or build on this work, a credit or link back is appreciated but not legally required.
+
+**Suggested citation format:**
+
+```
+Solun, S. (2025). CV Boutique Agency — Claude Code Skill [Software].
+GitHub. https://github.com/stevesolun/CV_Boutique_Agency
+```
+
+**BibTeX:**
+
+```bibtex
+@software{solun2025cvboutique,
+  author    = {Solun, Steve},
+  title     = {{CV Boutique Agency} — Claude Code Skill},
+  year      = {2025},
+  publisher = {GitHub},
+  url       = {https://github.com/stevesolun/CV_Boutique_Agency}
+}
+```
