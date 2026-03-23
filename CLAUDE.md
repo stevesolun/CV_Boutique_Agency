@@ -22,7 +22,7 @@ Read `boutique-resume-agency/skills/boutique-resume-agency/SKILL.md` at the star
 ## Dependency
 Run once before exporting:
 ```bash
-pip install python-docx
+python -m pip install python-docx
 ```
 
 ## Operating reminders

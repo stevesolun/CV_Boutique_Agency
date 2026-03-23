@@ -62,6 +62,8 @@ Do not skip this. Do not rely only on the function's built-in defaults.
 Find 2–3 current, credible sources (career sites, industry associations, recruiter publications dated 2024–2026).
 If search results conflict with the function defaults, the live results take precedence.
 
+**Fallback when search is unavailable:** If the web search tool is not accessible, state the function's default recommendation clearly and add a disclaimer: "Based on built-in defaults — please verify against current sources (e.g., LinkedIn career advice, Resume.io, Indeed hiring guides)." Do not present the default as a confirmed live finding.
+
 ### Step 3 — Present the validated recommendation
 State the page range, cite the sources by name and URL, and give the rationale.
 Example format:
@@ -106,19 +108,35 @@ Do not repeat this tip after the first message.
 ### Path A: Build from scratch
 1. Raw fact collection
 2. Structured experience inventory
-3. Initial positioning hypothesis
+3. Initial positioning hypothesis — note: if user explicitly states they are changing careers or industries, set `intentional_transition: true` in memory.json and treat industry gap as a positioning challenge (not a blocker). Focus panel on transferable skills, bridge narrative, and differentiated framing.
 4. Panel challenge and validation
 5. Draft
 6. Review loop
 7. QC loop
 8. User validation and refinement
 
+**Output language rule:** If language ≠ English, write the entire final resume — all sections, headings, and bullets — in the user's selected language. Panel discussion may happen in English internally, but every user-facing output must be in the user's language. Confirm language with the user if ambiguous.
+
+**Career transition rule:** Do not fire `industry mismatch` as a blocker for intentional career changes. Instead, use it as a framing input: the panel should challenge whether the positioning bridge is strong enough to land the target role.
+
 ### Path B: Uploaded resume
 1. Detect uploaded resume
 2. Ask only missing context
 3. Build context-specific panel
-4. Deliver initial critique
-5. Ask whether to rewrite, rebuild, or tailor
+4. Deliver initial critique (score + blockers + strengths + exact fixes)
+5. Branch based on initial score:
+   - **Score >= 9.0, zero blockers**: Tell the user the resume is already exceptional. Offer: [Export as-is] [Light polish only] [Full rewrite]. If "Export as-is", proceed directly to DOCX export — do not force a rewrite.
+   - **Score 8.5–8.9, no critical blockers**: Offer: [Minor refinements] [Full rewrite] [Tailor to JD].
+   - **Score < 8.5 or blockers present**: Ask whether to [Rewrite] [Rebuild from scratch] [Tailor to JD].
+
+**Path B — Tailor to JD sub-path:**
+1. If JD text was not provided in intake, ask for it now: "Please paste the full job description."
+2. Map the user's resume claims to the JD requirements. Identify: (a) keyword gaps, (b) experience alignment gaps, (c) bullets that should be rewritten to mirror JD language.
+3. Do not fabricate experience to fill gaps — flag any unbridgeable gap honestly.
+4. Rewrite targeted bullets to reflect JD language where factually grounded.
+5. Add a JD-fit score as an additional scoring dimension alongside the standard panel scores.
+6. Save the JD summary to memory.json under `target_context.job_description_summary`.
+7. Proceed to standard QC loop and stop conditions.
 
 ## Scoring model
 Use:
@@ -131,6 +149,8 @@ Use:
 - ATS / readability score when relevant
 - Weighted overall score
 - Critical blocker flags
+
+Note: Devil's advocate, creative reframer, and QC lead provide qualitative findings and flags only — they do not contribute a numeric `score_contribution` to the weighted average. Their blocker flags still count as confirmed blockers per the synthesis protocol.
 
 Also maintain internal per-section scores.
 
@@ -215,7 +235,7 @@ Hard rules:
 
 ### Step 4 — Offer a second name
 After the first opinion, offer once: "Want to hear from someone else?"
-If yes, repeat Steps 2–3 with a different name. Cap at 2 opinions unless the user keeps asking.
+If yes, repeat Steps 2–3 with a different name. Default cap is 2 opinions — do not proactively offer a third. If the user explicitly asks for more, continue graciously; this epilogue is for fun and there is no hard stop.
 
 ## Agent teams architecture
 
@@ -332,8 +352,18 @@ Cause: python-docx not installed.
 Solution: Run `python -m pip install python-docx` then retry. Use `python -m pip` (not bare `pip`) to ensure the package installs for the same Python interpreter that is running the script.
 
 ### Memory file missing
-Cause: workspace/ not initialized.
-Solution: The workspace/ folder ships with initialized memory.json and progress.json. If missing, run `python scripts/memory_manager.py` to regenerate defaults.
+Cause: workspace/ not initialized or files deleted.
+Solution: The workspace/ folder ships with initialized memory.json and progress.json. If missing, run this from the project root:
+```python
+python -c "
+import sys, json, pathlib
+sys.path.insert(0, 'boutique-resume-agency/scripts')
+from memory_manager import DEFAULT_MEMORY, DEFAULT_PROGRESS
+pathlib.Path('workspace/memory.json').write_text(json.dumps(DEFAULT_MEMORY, indent=2))
+pathlib.Path('workspace/progress.json').write_text(json.dumps(DEFAULT_PROGRESS, indent=2))
+print('workspace files restored')
+"
+```
 
 ### Resume scores below 8.5 after multiple iterations
 Cause: Critical blocker flags not fully resolved.

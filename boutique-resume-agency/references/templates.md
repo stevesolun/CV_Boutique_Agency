@@ -8,6 +8,7 @@
 - Geography:
 - Company stage:
 - Job description provided:
+- Job description text: (paste full JD here if tailoring)
 - User pace preference:
 - Fast mode:
 

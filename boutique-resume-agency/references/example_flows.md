@@ -24,7 +24,7 @@
 6. Score
 7. Recommend rewrite / rebuild / tailor
 8. Proceed based on user choice
-9. Famous opinion epilogue (optional — offer once after DOCX delivered or rewrite complete)
+9. Famous opinion epilogue (optional — offer once after final DOCX is delivered and accepted)
 
 ## Flow 3: Agent teams mode (full expert panel as real Claude teammates)
 Prerequisites: Claude Code v2.1.32+ · `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in settings.json

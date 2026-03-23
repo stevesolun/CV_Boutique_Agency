@@ -23,7 +23,17 @@ def export_resume_to_docx(resume_data: Dict[str, Any], output_path: str) -> str:
             if isinstance(item, str):
                 doc.add_paragraph(item, style="List Bullet")
             elif isinstance(item, dict):
-                if "heading" in item:
+                if "company" in item or "title" in item or "dates" in item:
+                    # Structured experience item: render company | title on one bold line, dates alongside
+                    name_parts = [p for p in [item.get("company"), item.get("title")] if p]
+                    heading_text = " | ".join(name_parts) if name_parts else ""
+                    dates_text = item.get("dates", "")
+                    p = doc.add_paragraph()
+                    rr = p.add_run(heading_text)
+                    rr.bold = True
+                    if dates_text:
+                        p.add_run(f"  {dates_text}")
+                elif "heading" in item:
                     p = doc.add_paragraph()
                     rr = p.add_run(item["heading"])
                     rr.bold = True

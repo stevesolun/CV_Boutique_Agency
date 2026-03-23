@@ -58,12 +58,42 @@ def build_panel(context: PanelContext) -> Dict[str, Any]:
         "Quality-control lead",
         "Hallucination detector",
     ]
+    # English identifiers — ISO codes and variants that should NOT trigger localization expert
+    _ENGLISH_CODES = {
+        "english", "en", "en-us", "en-gb", "en-au", "en-ca", "en-nz", "en-ie", "en-za",
+    }
+
+    # Seniority keywords that indicate executive / director-level roles
+    _EXEC_SENIORITY = {
+        "director", "vp", "vice president", "chief", "c-suite", "cto", "ceo",
+        "cfo", "coo", "president", "partner", "managing director", "md",
+    }
+
+    # Company stage keywords that indicate a startup / solo context where ATS is less relevant
+    _STARTUP_STAGES = {
+        "startup", "pre-seed", "seed", "solo", "freelance", "self-employed", "bootstrapped",
+    }
+
     optional = []
     if context.industry:
         optional += ["Domain expert", "Industry-specific reviewer"]
-    if context.language and context.language.lower() != "english":
+
+    # Language / localization expert: add when language is not English (inc. ISO codes)
+    lang = (context.language or "").lower().strip()
+    if lang and lang not in _ENGLISH_CODES:
         optional.append("Language / localization expert")
-    optional += ["ATS specialist", "Executive branding expert"]
+
+    # ATS specialist: add when there is a JD or when company stage is not clearly a startup/solo
+    stage = (context.company_stage or "").lower().strip()
+    is_startup = any(s in stage for s in _STARTUP_STAGES) if stage else False
+    if context.job_description or not is_startup:
+        optional.append("ATS specialist")
+
+    # Executive branding expert: add only for director+ / C-suite / partner seniority
+    sen = (context.seniority or "").lower().strip()
+    if any(s in sen for s in _EXEC_SENIORITY):
+        optional.append("Executive branding expert")
+
     return {"core": core, "optional": optional}
 
 
