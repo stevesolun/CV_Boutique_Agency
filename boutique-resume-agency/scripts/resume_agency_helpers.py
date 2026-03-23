@@ -4,6 +4,7 @@ from typing import Dict, Any, Optional
 from pathlib import Path
 import json
 import re
+from _file_utils import atomic_write_json
 
 # Default scoring weights used by weighted_score().
 # Keys match the expert names used in score dicts throughout the skill.
@@ -337,7 +338,6 @@ def weighted_score(
 
 
 def save_json(path: str | Path, data: Dict[str, Any]) -> None:
-    from _file_utils import atomic_write_json
     atomic_write_json(path, data)
 
 
