@@ -341,23 +341,31 @@ Delete the affected file and let the skill regenerate it, or run the restore scr
 
 ## Agent teams architecture (experimental)
 
-The boutique resume agency is designed around [Claude Code agent teams](https://code.claude.com/docs/en/agent-teams). When enabled, every expert is a real independent Claude instance — not simulated in a single context. The CEO is the permanent team lead; all panel members are teammates.
+The boutique resume agency uses a two-tier execution model. The expert panel, scoring, hallucination detection, and context-dependent expert additions are identical in both tiers — only the execution model differs.
 
-### How it works
+### Two-tier overview
 
-| Component | Role |
-|-----------|------|
-| **CEO (team lead)** | All user communication, intake, expert spawning, task assignment, synthesis, memory management |
-| **8 core experts (teammates)** | Spawned at session start; each has own context, defined persona, and structured output format |
-| **Context-dependent experts** | Spawned on-the-fly by CEO as intake answers reveal the need |
+| | Tier 1 — Simulation (default) | Tier 2 — Agent teams (experimental) |
+|-|-------------------------------|--------------------------------------|
+| **Works on** | Claude.ai, Claude Code, any tier — zero config | Claude Code v2.1.32+ with `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` |
+| **Execution model** | CEO simulates all experts in one context window | Every expert is a real independent Claude instance |
+| **Context-dependent experts** | ✅ CEO adds them via simulation as context reveals the need | ✅ CEO spawns real subagents on-the-fly with full context |
+| **Scoring / QC / hallucination detection** | ✅ Identical logic | ✅ Identical logic |
+| **Expert-to-expert messaging** | Simulated by CEO | Real direct inter-expert messages |
+| **Token cost** | Single context window | Scales with active experts (8–13 instances) |
+| **Session announcement** | "Running in agency simulation mode…" | No announcement — normal operation |
 
-**On-the-fly spawning:** When the CEO learns you're targeting a specific industry, a senior role, a non-English language, or a sector with strong conventions (finance, legal, healthcare, government), it spawns the appropriate specialist at that moment — defining the spawn prompt based on your exact context.
+Both tiers share the same stop conditions, scoring weights, blocker flags, and export flow.
 
-**Expert-to-expert communication:** Teammates can message each other directly. The Devil's Advocate challenges other experts' findings. The Creative Reframer can push back on the AI Veteran's framing suggestions. All exchanges are visible to the CEO.
+### Tier 2 setup (Claude Code)
 
-**Fallback:** If agent teams are not enabled, the CEO simulates all experts in a single context (current default behavior). The CEO notes this at session start.
+**Step 1 — Verify Claude Code version**
 
-### Prerequisites
+```bash
+claude --version   # must be v2.1.32+
+```
+
+**Step 2 — Enable agent teams**
 
 ```json
 // settings.json
@@ -368,16 +376,32 @@ The boutique resume agency is designed around [Claude Code agent teams](https://
 }
 ```
 
-- Claude Code v2.1.32 or later (`claude --version`)
-- Feature is experimental — see [known limitations](https://code.claude.com/docs/en/agent-teams#limitations)
+**Step 3 — Start a session as normal.** The CEO runs the full Tier 2 flow automatically — no special trigger phrase needed.
 
-### Token cost
+The "experimental" label is honest: the Claude Code agent teams API itself is experimental. The skill's architecture and protocols are production-ready.
 
-Token usage scales with the number of active teammates (8–13 experts). Each teammate has its own full context window. For short or fast-mode sessions, the single-context fallback is more cost-efficient.
+### How Tier 2 works
+
+**Session start:** CEO spawns all 8 mandatory core experts. Each expert receives a full spawn prompt with persona, scope, input contract (session context + task object), and required JSON output format.
+
+**Wave execution per review cycle:**
+- **Wave 1 (parallel):** AI Veteran, HR Specialist, Founder, Business Operator, Domain Expert (if active), ATS Specialist (if active)
+- **Wave 2 (after Wave 1):** Devil's Advocate, Creative Reframer
+- **Wave 3 (after Wave 2):** QC Lead, Hallucination Detector
+
+**Context-dependent experts:** When intake reveals a specific industry, senior role, non-English language, or high-norm sector, the CEO generates a full tailored spawn prompt and spawns the specialist as a real subagent at that moment.
+
+**Synthesis:** CEO reads all expert return contracts, runs `weighted_score()`, promotes any `HARD_BLOCK:` flag (Hallucination Detector) to a confirmed blocker regardless of other scores, and presents the panel verdict.
+
+**Error / timeout:** Expert timeout = 90 seconds. On timeout, CEO marks status `error`, redistributes that expert's weight across remaining experts via normalization, and continues. Hallucination Detector failure blocks export entirely until resolved.
+
+### Full production spec
+
+Complete spawn prompts (one per expert, ~15 lines each), input/return contract JSON schemas, and error-handling protocol are defined in [`SKILL.md`](boutique-resume-agency/skills/boutique-resume-agency/SKILL.md) under "Agent teams architecture".
 
 ### Windows / VS Code note
 
-Split-pane mode requires tmux or iTerm2 and is not supported in VS Code's integrated terminal or Windows Terminal. In-process mode (default) works everywhere. Use Shift+Down to cycle between active expert sessions.
+In-process mode (default) works on Windows and in VS Code's integrated terminal. Split-pane mode requires tmux or iTerm2 and is not available in VS Code. Use Shift+Down to cycle between active expert sessions.
 
 ---
 
