@@ -42,5 +42,12 @@ def export_resume_to_docx(resume_data: Dict[str, Any], output_path: str) -> str:
 
     out = Path(output_path)
     out.parent.mkdir(parents=True, exist_ok=True)
-    doc.save(str(out))
+    tmp = out.with_suffix(out.suffix + ".tmp")
+    tmp.unlink(missing_ok=True)
+    try:
+        doc.save(str(tmp))
+        tmp.replace(out)
+    except Exception:
+        tmp.unlink(missing_ok=True)
+        raise
     return str(out)

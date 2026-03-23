@@ -337,9 +337,8 @@ def weighted_score(
 
 
 def save_json(path: str | Path, data: Dict[str, Any]) -> None:
-    p = Path(path)
-    p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+    from _file_utils import atomic_write_json
+    atomic_write_json(path, data)
 
 
 def load_json(path: str | Path) -> Dict[str, Any]:

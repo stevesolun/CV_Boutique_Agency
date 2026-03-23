@@ -2,6 +2,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Dict, Any
 import json
+from _file_utils import atomic_write_json
 
 DEFAULT_MEMORY = {
     "user_profile": {},
@@ -32,8 +33,7 @@ def _load(path: Path, default: Dict[str, Any]) -> Dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 def _save(path: Path, data: Dict[str, Any]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+    atomic_write_json(path, data)
 
 def load_memory(path: str) -> Dict[str, Any]:
     return _load(Path(path), DEFAULT_MEMORY)
