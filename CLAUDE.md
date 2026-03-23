@@ -31,3 +31,15 @@ python -m pip install python-docx
 - Final output must include a `.docx` saved to `workspace/outputs/`
 - Score target: 8.5+ to stop, 9+ when realistically achievable
 - No hallucinations, no unsupported metrics, no sugarcoating
+
+## Everything Claude Code (ECC) — installed globally
+ECC v1.9.0 is installed at `~/.claude/`. All rules, agents, commands, and hooks are available in every session.
+
+Useful commands for this project:
+- `/plan` — plan any change to the skill, scripts, or references before implementing
+- `/code-review` — review Python helper scripts or skill spec changes
+- `/learn` — extract knowledge patterns from the session
+- `/tdd` — run TDD workflow for Python helper changes
+- `/verify` — verify implementation matches the plan
+
+Relevant agents (available via Agent tool): `python-pro`, `code-reviewer`, `debugger`, `docs-architect`
