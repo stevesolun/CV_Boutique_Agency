@@ -1,7 +1,7 @@
 # CV Boutique Agency — Claude Code Skill
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-87%20passed-brightgreen)](boutique-resume-agency/tests/)
+[![Tests](https://img.shields.io/badge/tests-204%20passed-brightgreen)](boutique-resume-agency/tests/)
 [![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)](boutique-resume-agency/tests/)
 
 A top-tier boutique resume agency skill for Claude Code. Acts as a panel of eight expert reviewers — AI veteran, HR specialist, founder, business operator, devil's advocate, creative reframer, QC lead, and hallucination detector — to build, critique, rewrite, and quality-control resumes until they reach 8.5+ quality with zero hallucinated claims. Final output includes a send-ready `.docx`.
@@ -98,7 +98,10 @@ CV_Boutique_Agency/
       docx_export.py           # DOCX export via python-docx
       _file_utils.py           # Shared atomic JSON write utility
     tests/
-      test_resume_agency_helpers.py # 87 pytest tests, 100% coverage
+      test_resume_agency_helpers.py # 204 pytest tests across 4 files, 100% coverage
+      test_e2e.py
+      test_docx_export.py
+      test_memory_manager.py
     references/
       templates.md             # Intake + critique + output templates
       scoring_rubric.md        # Score scale, blocker flags, pass criteria
@@ -288,7 +291,7 @@ Memory doesn't auto-persist between conversations. To continue a session:
 |------|----------------|--------------|
 | **Tier 1 — Simulation** (default) | Just start a session — no config needed | CEO simulates all 8+ experts in one context window. Works on Claude.ai, Claude Code, any subscription tier. |
 | **Tier 2 — Agent teams** (experimental) | Enable `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in settings.json + Claude Code v2.1.32+ | Every expert runs as a real independent Claude instance with its own context. See [Agent teams architecture](#agent-teams-architecture-experimental). |
-| **Fast mode** | Say `fast mode` or `/fast` at any point | Skips non-critical intake questions. Full agency logic runs behind the scenes. All QA and hallucination controls still enforced. |
+| **Fast mode** | Say `fast mode` or type `/fast` in the conversation | Skips non-critical intake questions. Full agency logic runs behind the scenes. All QA and hallucination controls still enforced. |
 | **Interactive mode** (default) | No phrase needed, or say `interactive mode` | One section at a time, full back-and-forth with the panel. |
 | **Build from scratch** | `build my resume` | Full intake → section-by-section build → score → export |
 | **Critique / rewrite** | Paste resume + `critique my resume` | Executive verdict, per-section scores, fix list |
@@ -296,7 +299,7 @@ Memory doesn't auto-persist between conversations. To continue a session:
 
 ### Toggling fast mode
 
-Say `fast mode` at any point in the session (or prefix the session opener: `fast mode. build my resume`). In Claude Code you can also use `/fast` from the status line.
+Say `fast mode` or type `/fast` at any point in the session (or prefix the session opener: `fast mode. build my resume`). These are skill trigger phrases — say them in the conversation, not as top-level CLI commands.
 
 Fast mode skips geography, company stage, and other optional intake questions. The agency asks only the minimum blocking questions (language, path, industry/role) and then works autonomously.
 
