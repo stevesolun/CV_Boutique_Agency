@@ -14,6 +14,8 @@ DEFAULT_MEMORY = {
     "forbidden_claims": [],
     "open_questions": [],
     "final_constraints": [],
+    "language": "",
+    "intentional_transition": False,
 }
 
 DEFAULT_PROGRESS = {
@@ -25,6 +27,7 @@ DEFAULT_PROGRESS = {
     "current_plan": [],
     "next_actions": [],
     "user_decisions": [],
+    "revision_cycle_count": 0,
 }
 
 def _load(path: Path, default: Dict[str, Any]) -> Dict[str, Any]:

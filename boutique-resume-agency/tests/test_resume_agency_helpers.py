@@ -169,6 +169,27 @@ class TestWeightedScore:
         result = weighted_score(scores, weights)
         assert abs(result - 9.0) < 0.01
 
+    def test_none_score_values_are_skipped(self):
+        scores = {"ai_veteran": 8.0, "hr": None, "founder": 8.0}
+        result = weighted_score(scores)
+        expected = (8.0 * 0.20 + 8.0 * 0.15) / 0.35
+        assert abs(result - expected) < 0.01
+
+    def test_non_numeric_score_values_are_skipped(self):
+        scores = {"ai_veteran": 9.0, "hr": "unknown"}
+        result = weighted_score(scores)
+        assert abs(result - 9.0) < 0.01
+
+    def test_score_above_10_is_clamped_to_10(self):
+        scores = {"ai_veteran": 15.0}
+        result = weighted_score(scores)
+        assert result == 10.0
+
+    def test_negative_score_is_clamped_to_zero(self):
+        scores = {"ai_veteran": -5.0}
+        result = weighted_score(scores)
+        assert result == 0.0
+
 
 # ---------------------------------------------------------------------------
 # check_resume_length_best_practice

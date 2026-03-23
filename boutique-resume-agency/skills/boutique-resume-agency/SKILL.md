@@ -135,6 +135,8 @@ Do not repeat this tip after the first message.
 **Path B — Light polish execution:**
 When the user chooses [Light polish only] (Score >= 9.0 branch), do not rewrite content. Run the QC panel (QC Lead + Hallucination Detector) on the existing resume: tighten language, fix consistency issues, and eliminate any minor formatting problems. Present the polished version to the user section by section. Once the user accepts, proceed directly to DOCX export.
 
+**Light polish — critical blocker discovered:** If the QC panel uncovers a Hallucination Detector hard-block during the light polish pass, this overrides the ≥ 9.0 branch outcome. Inform the user: "A credibility issue was found during the polish pass that needs to be addressed before the resume can be sent." Document the blocker in `critical_blockers` in progress.json, then route to the < 8.5 / blockers-present branch and offer: [Rewrite] [Rebuild from scratch] [Tailor to JD].
+
 **Path B — Minor refinements execution:**
 When the user chooses [Minor refinements] (Score 8.5–8.9 branch), apply targeted section-level edits to address the specific issues raised in the critique. Treat this as a focused Path A steps 7–8 pass (QC loop + user validation). Present each change individually, confirm with the user, and proceed to DOCX export once the user accepts. Full rewrite is not required.
 
@@ -145,6 +147,7 @@ When the user chooses [Rewrite] or [Rebuild from scratch], execute Path A steps 
 1. If JD text was not provided in intake, ask for it now: "Please paste the full job description."
 1a. Validate the JD content: if the response is empty, whitespace-only, or a URL with no pasted text, ask again: "Please paste the actual job description text — a URL alone isn't enough." If the user confirms there is no JD available or declines to provide one, revert to standard Path B critique without the JD-fit supplement and inform the user why.
 2. Map the user's resume claims to the JD requirements. Identify: (a) keyword gaps, (b) experience alignment gaps, (c) bullets that should be rewritten to mirror JD language.
+2a. If the JD is from a significantly different industry than the uploaded resume, ask: "I notice this role is in a different field — is this an intentional career move?" If yes, set `intentional_transition: true` in memory.json and treat the industry gap as a positioning challenge rather than a blocker (consistent with the career transition rule in Path A). Do not fire the `industry_mismatch` blocker.
 3. Do not fabricate experience to fill gaps — flag any unbridgeable gap honestly.
 4. Rewrite targeted bullets to reflect JD language where factually grounded.
 5. Add a JD-fit score as a supplemental display-only metric alongside the standard panel scores. Display it separately on the scorecard (e.g., "JD-fit: 8.2/10"). It does not feed into the weighted overall score formula — the overall score is still computed from the standard expert weights only.
@@ -175,6 +178,10 @@ Stop only when:
 4. You state clearly whether 9+ was reached or not
 
 **Stuck below 8.5:** If the weighted score remains below 8.5 after 3 or more full revision cycles and further improvement would require fabricating content, stop iterating. Present the best available draft with the current score disclosed honestly. Explain which specific issues prevent reaching 8.5 (typically: unresolvable metric gaps or user-refused blockers). Offer to export with the disclosed score and a note on the open issues. Do not pretend the score is higher than it is.
+
+**Definition — full revision cycle:** One complete expert review pass (all active panel members score and report) followed by one `weighted_score()` call counts as one full revision cycle. Track the running count in `progress.json` under `revision_cycle_count`.
+
+**Fabrication determination:** Further improvement requires fabrication when every remaining confirmed blocker would need a metric, title, scope claim, or achievement that does not exist in the user's provided facts and cannot be factually inferred from context the user confirmed. If at least one blocker can still be resolved with real facts the user has not yet surfaced, continue iterating.
 
 **User-refused blocker:** If the user explicitly declines to fix a critical blocker after being advised of its impact on score and credibility, document the refusal in `user_decisions` in progress.json. Inform the user: "This blocker will remain on record and will be disclosed in the session summary." If the user confirms they want to proceed anyway, export with the current score and list the unresolved blocker explicitly in the closing summary. Do not silently drop the blocker flag.
 
@@ -232,10 +239,10 @@ If "Let me choose": show 4 names from the relevant industry + 1 wildcard ("Histo
 | Finance / Banking / VC | Warren Buffett, Charlie Munger, Ray Dalio, Jamie Dimon, George Soros |
 | Healthcare / Biotech / Pharma | Bill Gates (global health), Marie Curie, Florence Nightingale, Francis Collins |
 | Creative / Design / Marketing | David Ogilvy, Steve Jobs, Coco Chanel, Andy Warhol |
-| Consulting / Strategy | Peter Drucker, Clayton Christensen, Michael Porter |
-| Legal | Ruth Bader Ginsburg, Abraham Lincoln, Thurgood Marshall |
+| Consulting / Strategy | Peter Drucker, Clayton Christensen, Michael Porter, Jack Welch |
+| Legal | Ruth Bader Ginsburg, Abraham Lincoln, Thurgood Marshall, Sandra Day O'Connor |
 | Academia / Research | Richard Feynman, Carl Sagan, Marie Curie, Albert Einstein |
-| Government / Military / Public sector | Sun Tzu, Winston Churchill, Colin Powell |
+| Government / Military / Public sector | Sun Tzu, Winston Churchill, Colin Powell, Theodore Roosevelt |
 | Startups / Entrepreneurship | Paul Graham, Reid Hoffman, Oprah Winfrey, Richard Branson |
 | Historical wildcard (any) | Napoleon, Leonardo da Vinci, Marcus Aurelius, Machiavelli, Socrates |
 
@@ -327,7 +334,8 @@ After all assigned experts report:
 
 ### Session end
 CEO runs team cleanup after DOCX is delivered and epilogue completes.
-Confirm: "Clean up the team?" before running cleanup.
+In agent teams mode, confirm: "Clean up the team?" before running cleanup.
+In single-context mode, close the session: "Your resume is complete and ready to send."
 
 ## Required functions
 Use or implement equivalent functions for:

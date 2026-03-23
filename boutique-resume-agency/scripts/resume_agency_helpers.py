@@ -315,10 +315,15 @@ def weighted_score(
     """Compute weighted average score across active experts.
 
     Args:
-        scores:  Dict of expert_key -> float score (0–10).
+        scores:  Dict of expert_key -> float score (0–10). None or
+                 non-numeric values are silently excluded (treated as
+                 absent experts rather than raising an error).
         weights: Dict of expert_key -> float weight. Defaults to
                  DEFAULT_WEIGHTS if not provided. Only keys present
                  in both scores and weights contribute to the result.
+
+    Returns:
+        Weighted average clamped to [0.0, 10.0].
 
     Example::
 
@@ -330,11 +335,16 @@ def weighted_score(
     """
     if weights is None:
         weights = DEFAULT_WEIGHTS
-    used = {k: v for k, v in scores.items() if k in weights}
+    used = {
+        k: float(v)
+        for k, v in scores.items()
+        if k in weights and v is not None and isinstance(v, (int, float))
+    }
     if not used:
         return 0.0
     total_weight = sum(weights[k] for k in used)
-    return sum(scores[k] * weights[k] for k in used) / total_weight
+    raw = sum(used[k] * weights[k] for k in used) / total_weight
+    return max(0.0, min(10.0, raw))
 
 
 def save_json(path: str | Path, data: Dict[str, Any]) -> None:
