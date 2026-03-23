@@ -25,7 +25,7 @@ def export_resume_to_docx(resume_data: Dict[str, Any], output_path: str) -> str:
             elif isinstance(item, dict):
                 if "company" in item or "title" in item or "dates" in item:
                     # Structured experience item: render company | title on one bold line, dates alongside
-                    name_parts = [p for p in [item.get("company"), item.get("title")] if p]
+                    name_parts = [part for part in [item.get("company"), item.get("title")] if part]
                     heading_text = " | ".join(name_parts) if name_parts else ""
                     dates_text = item.get("dates", "")
                     p = doc.add_paragraph()

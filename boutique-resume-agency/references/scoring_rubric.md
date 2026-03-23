@@ -17,7 +17,7 @@
 - bloated bullets
 - hallucination risk
 - excessive length
-- industry mismatch
+- industry mismatch — **suppressed** when `intentional_transition: true` is set in memory.json; treat as a positioning challenge instead
 - role mismatch
 
 ## Pass criteria

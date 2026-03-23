@@ -19,6 +19,11 @@
 }
 ```
 
+`final_constraints` is an array. Append constraint objects — e.g.:
+```json
+{"type": "page_length", "agreed_range": "2–3", "user_override": false}
+```
+
 ## progress.json schema
 ```json
 {

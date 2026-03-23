@@ -17,6 +17,231 @@ DEFAULT_WEIGHTS: Dict[str, float] = {
     "ats":          0.05,
 }
 
+# Language ISO codes / variants that should NOT trigger the localization expert.
+_ENGLISH_CODES = frozenset({
+    "english", "en", "en-us", "en-gb", "en-au", "en-ca", "en-nz", "en-ie", "en-za",
+})
+
+# Seniority keywords that indicate executive / director-level roles.
+_EXEC_SENIORITY = frozenset({
+    "director", "vp", "vice president", "chief", "c-suite", "cto", "ceo",
+    "cfo", "coo", "president", "partner", "managing director", "md",
+})
+
+# Company stage keywords that indicate a startup / solo context where ATS is less relevant.
+_STARTUP_STAGES = frozenset({
+    "startup", "pre-seed", "seed", "solo", "freelance", "self-employed", "bootstrapped",
+})
+
+
+def _label_matches(label: str, text: str) -> bool:
+    """Return True if *label* appears as a whole word in *text* (case-insensitive).
+
+    Uses word-boundary regex so short labels like "ai" don't accidentally match
+    substrings (e.g. "retail" contains the letters "ai").
+    """
+    pattern = r"\b" + re.escape(label.strip()) + r"\b"
+    return bool(re.search(pattern, text, re.IGNORECASE))
+
+
+# Industry lookup table — 2025-2026 resume length standards.
+# Each entry has: labels (match strings), range, min, max, rationale, leverage, search, ats.
+# Optional key: is_cv_format (True for academic/research roles).
+INDUSTRY_DATA: Dict[str, Dict] = {
+    "tech": {
+        "labels": ["tech", "software", "engineering", "it ", "data", "ai", "ml",
+                   "developer", "devops", "cloud", "product", "saas"],
+        "range": "2–3",
+        "min": 2, "max": 3,
+        "rationale": (
+            "Technical roles require documenting specific tools, languages, frameworks, "
+            "and project outcomes. Two pages is the strong default; three is acceptable "
+            "for senior engineers or PMs with large portfolios."
+        ),
+        "leverage": [
+            "Most FAANG and top-tier tech recruiters expect 2 pages for senior engineers — "
+            "a single page signals under-qualified at staff+ level.",
+            "ATS systems (Greenhouse, Lever, Workday) parse 2-page resumes more effectively "
+            "for keyword density than single-page resumes.",
+            "A third page is only justified if every bullet is a different role, project, or "
+            "technical domain — padding kills credibility faster than length.",
+        ],
+        "search": "software engineer resume length best practices 2025 2026",
+        "ats": (
+            "2-page resumes score higher keyword density in ATS systems used by tech companies. "
+            "3 pages is acceptable for staff/principal/VP roles with distinct project breadth."
+        ),
+    },
+    "healthcare": {
+        "labels": ["healthcare", "health", "medicine", "medical", "nursing", "clinical",
+                   "biotech", "pharma", "pharmaceutical", "science", "biology", "chemistry",
+                   "lab", "research scientist"],
+        "range": "2–3",
+        "min": 2, "max": 3,
+        "rationale": (
+            "Healthcare resumes require detailed documentation of licenses, certifications, "
+            "clinical rotations, and continuing education. Two to three pages is standard."
+        ),
+        "leverage": [
+            "Licensing bodies and hospital credentialing departments expect complete records — "
+            "truncating certifications or clinical history is a compliance risk.",
+            "Two pages is the minimum for anyone past residency or a junior lab role.",
+        ],
+        "search": "healthcare medical resume length best practices 2025 2026",
+        "ats": (
+            "Healthcare ATS systems expect full certification and license details — "
+            "trimming these to fit one page actively harms ATS scoring."
+        ),
+    },
+    "finance": {
+        "labels": ["finance", "banking", "investment", "hedge", "private equity", "vc ",
+                   "venture capital", "accounting", "cfo", "cpa", "audit", "financial"],
+        "range": "1–2",
+        "min": 1, "max": 2,
+        "rationale": (
+            "Finance and banking cultures value concision and signal density. "
+            "One page is preferred for analysts and associates; two pages is acceptable "
+            "for senior roles with extensive deal history or certifications (CFA, CPA, etc.)."
+        ),
+        "leverage": [
+            "Goldman Sachs, JPMorgan, and most bulge-bracket banks filter for 1-page resumes "
+            "at analyst and associate level — a 2-page resume from a 3-year analyst is a red flag.",
+            "Private equity and VC firms receive hundreds of applications; two-page resumes "
+            "at junior level signal inability to prioritise, which is itself a disqualifier.",
+            "Senior finance roles (VP, MD, CFO) can justify 2 pages when certifications and "
+            "deal tombstones require the space — anything beyond 2 is actively penalised.",
+        ],
+        "search": "finance banking resume length best practices 2025 2026",
+        "ats": (
+            "Most finance ATS and manual processes are optimised for 1-page parsing. "
+            "Dense 2-page resumes are accepted at senior level."
+        ),
+    },
+    "legal": {
+        "labels": ["legal", "law", "attorney", "lawyer", "counsel", "solicitor",
+                   "barrister", "paralegal", "compliance"],
+        "range": "1–2",
+        "min": 1, "max": 2,
+        "rationale": (
+            "Legal resumes follow similar conventions to finance — concise and high-signal. "
+            "Partners and senior counsel with extensive matters may extend to 2 pages."
+        ),
+        "leverage": [
+            "Law firm hiring partners read dozens of resumes in sequence — a 2-page junior "
+            "resume signals poor judgment about what matters.",
+            "One page is the expectation for associates with fewer than 7 years experience.",
+        ],
+        "search": "lawyer attorney resume length best practices 2025 2026",
+        "ats": "Legal ATS systems are optimised for 1-page parsing at associate level.",
+    },
+    "creative": {
+        "labels": ["creative", "design", "designer", "marketing", "brand", "advertising",
+                   "copywriter", "content", "ux", "ui", "media", "film", "fashion"],
+        "range": "1 page + portfolio link",
+        "min": 1, "max": 1,
+        "rationale": (
+            "Creative roles treat the resume as a gateway to the portfolio. "
+            "One tight page + a portfolio link is the industry standard — the portfolio "
+            "does the heavy lifting on craft, taste, and execution."
+        ),
+        "leverage": [
+            "Creative directors at agencies receive 200+ applications per role — "
+            "a 2-page resume without a portfolio link gets binned; a 1-page with a strong "
+            "portfolio link gets clicked.",
+            "A 1-page resume forces you to surface only your best work, which itself "
+            "signals editorial judgment — the very skill you're selling.",
+            "The portfolio URL is more valuable than any bullet point — prioritise it over length.",
+        ],
+        "search": "creative designer marketing resume length portfolio 2025 2026",
+        "ats": (
+            "Most creative roles use portfolio-first review rather than ATS keyword scoring. "
+            "The resume primarily needs to pass a 7-second human scan, not an algorithm."
+        ),
+    },
+    "government": {
+        "labels": ["government", "federal", "public sector", "civil service", "military",
+                   "defence", "defense", "nsa", "cia", "fbi", "dod", "usajobs"],
+        "range": "3–7",
+        "min": 3, "max": 7,
+        "rationale": (
+            "US federal resumes (USAJOBS) require in-depth work histories including hours "
+            "worked per week, supervisor names, and full salary history. "
+            "3–5 pages is typical; complex senior roles can reach 7."
+        ),
+        "leverage": [
+            "USAJOBS applications are reviewed against a vacancy announcement point by point — "
+            "an incomplete federal resume that omits hours worked or GS-level equivalencies "
+            "is automatically disqualified, regardless of how strong the experience is.",
+            "State and local government roles also typically require 2–3 pages minimum "
+            "to satisfy HR documentation requirements.",
+        ],
+        "search": "federal government resume USAJOBS length requirements 2025 2026",
+        "ats": (
+            "USAJOBS has its own structured data entry system. The uploaded resume "
+            "supplements structured fields rather than replacing them."
+        ),
+    },
+    "academia": {
+        "labels": ["academia", "academic", "university", "college", "research", "phd",
+                   "professor", "lecturer", "postdoc", "faculty", "scholar", "science"],
+        "range": "5–15+ (CV format)",
+        "min": 5, "max": None,
+        "is_cv_format": True,
+        "rationale": (
+            "Academic positions use CV format, not resume format. "
+            "Full publication lists, grant histories, teaching experience, conference "
+            "presentations, and service records are expected. "
+            "5 pages is a minimum for a junior faculty application; "
+            "senior professors often have 15–30 page CVs."
+        ),
+        "leverage": [
+            "A truncated academic CV signals a thin publication or grant record — "
+            "search committees will assume what you've omitted is weak.",
+            "Academic hiring committees read CVs cover-to-cover for shortlisted candidates; "
+            "brevity is not a virtue in this context.",
+        ],
+        "search": "academic CV length best practices faculty application 2025",
+        "ats": (
+            "Academic ATS systems (Interfolio, Workday for universities) are configured "
+            "to accept multi-page CVs. Length is not penalised."
+        ),
+    },
+    "consulting": {
+        "labels": ["consulting", "consultant", "strategy", "mckinsey", "bcg", "bain",
+                   "deloitte", "kpmg", "pwc", "ernst", "ey ", "advisory"],
+        "range": "1–2",
+        "min": 1, "max": 2,
+        "rationale": (
+            "Consulting resumes are expected to be intensely structured and concise. "
+            "MBB firms expect 1 page for most candidates; 2 pages is acceptable for "
+            "experienced industry hires or senior manager+ level."
+        ),
+        "leverage": [
+            "McKinsey, BCG, and Bain all publish explicit guidance preferring 1-page resumes "
+            "for MBA and experienced hire applications.",
+            "A consulting resume is itself a demonstration of your ability to structure "
+            "complex information into a concise, high-impact document — "
+            "failing to do that is failing the test before the interview.",
+        ],
+        "search": "consulting strategy resume length McKinsey BCG Bain best practices 2025",
+        "ats": "Most consulting firms use human review for initial screen, not ATS.",
+    },
+}
+
+# Experience-level page range defaults (used when no industry match is found).
+SENIORITY_DEFAULTS: Dict[str, Dict] = {
+    "entry": {"range": "1", "min": 1, "max": 1,
+              "rationale": "Entry-level candidates (0–5 years) should target 1 page. "
+                           "Recruiters expect brevity; a second page signals padding."},
+    "mid":   {"range": "1–2", "min": 1, "max": 2,
+              "rationale": "Mid-level candidates (5–15 years) typically fill 1–2 pages comfortably."},
+    "senior": {"range": "2–3", "min": 2, "max": 3,
+               "rationale": "Senior candidates (15+ years) can justify 2–3 pages with distinct roles."},
+    "exec":  {"range": "2–3", "min": 2, "max": 3,
+              "rationale": "Executive roles (C-suite, VP+) typically require 2–3 pages to cover "
+                           "board, advisory, and strategic leadership scope."},
+}
+
 @dataclass
 class ResumeContext:
     """Context used to build the expert panel.
@@ -58,21 +283,6 @@ def build_panel(context: ResumeContext) -> Dict[str, Any]:
         "Quality-control lead",
         "Hallucination detector",
     ]
-    # English identifiers — ISO codes and variants that should NOT trigger localization expert
-    _ENGLISH_CODES = {
-        "english", "en", "en-us", "en-gb", "en-au", "en-ca", "en-nz", "en-ie", "en-za",
-    }
-
-    # Seniority keywords that indicate executive / director-level roles
-    _EXEC_SENIORITY = {
-        "director", "vp", "vice president", "chief", "c-suite", "cto", "ceo",
-        "cfo", "coo", "president", "partner", "managing director", "md",
-    }
-
-    # Company stage keywords that indicate a startup / solo context where ATS is less relevant
-    _STARTUP_STAGES = {
-        "startup", "pre-seed", "seed", "solo", "freelance", "self-employed", "bootstrapped",
-    }
 
     optional = []
     if context.industry:
@@ -177,221 +387,11 @@ def check_resume_length_best_practice(
     sen = seniority.lower().strip()
     geo = (geography or "").lower().strip()
 
-    # ------------------------------------------------------------------ #
-    # Industry lookup table — 2025-2026 standards                         #
-    # ------------------------------------------------------------------ #
-    INDUSTRY_DATA: Dict[str, Dict] = {
-        # Keys are match strings (checked with 'in' against ind)
-        "tech": {
-            "labels": ["tech", "software", "engineering", "it ", "data", "ai", "ml",
-                       "developer", "devops", "cloud", "product", "saas"],
-            "range": "2–3",
-            "min": 2, "max": 3,
-            "rationale": (
-                "Technical roles require documenting specific tools, languages, frameworks, "
-                "and project outcomes. Two pages is the strong default; three is acceptable "
-                "for senior engineers or PMs with large portfolios."
-            ),
-            "leverage": [
-                "Most FAANG and top-tier tech recruiters expect 2 pages for senior engineers — "
-                "a single page signals under-qualified at staff+ level.",
-                "ATS systems (Greenhouse, Lever, Workday) parse 2-page resumes more effectively "
-                "for keyword density than single-page resumes.",
-                "A third page is only justified if every bullet is a different role, project, or "
-                "technical domain — padding kills credibility faster than length.",
-            ],
-            "search": "software engineer resume length best practices 2025 2026",
-            "ats": (
-                "2-page resumes score higher keyword density in ATS systems used by tech companies. "
-                "3 pages is acceptable for staff/principal/VP roles with distinct project breadth."
-            ),
-        },
-        "healthcare": {
-            "labels": ["healthcare", "health", "medicine", "medical", "nursing", "clinical",
-                       "biotech", "pharma", "pharmaceutical", "science", "biology", "chemistry",
-                       "lab", "research scientist"],
-            "range": "2–3",
-            "min": 2, "max": 3,
-            "rationale": (
-                "Healthcare resumes require detailed documentation of licenses, certifications, "
-                "clinical rotations, and continuing education. Two to three pages is standard."
-            ),
-            "leverage": [
-                "Licensing bodies and hospital credentialing departments expect complete records — "
-                "truncating certifications or clinical history is a compliance risk.",
-                "Two pages is the minimum for anyone past residency or a junior lab role.",
-            ],
-            "search": "healthcare medical resume length best practices 2025 2026",
-            "ats": (
-                "Healthcare ATS systems expect full certification and license details — "
-                "trimming these to fit one page actively harms ATS scoring."
-            ),
-        },
-        "finance": {
-            "labels": ["finance", "banking", "investment", "hedge", "private equity", "vc ",
-                       "venture capital", "accounting", "cfo", "cpa", "audit", "financial"],
-            "range": "1–2",
-            "min": 1, "max": 2,
-            "rationale": (
-                "Finance and banking cultures value concision and signal density. "
-                "One page is preferred for analysts and associates; two pages is acceptable "
-                "for senior roles with extensive deal history or certifications (CFA, CPA, etc.)."
-            ),
-            "leverage": [
-                "Goldman Sachs, JPMorgan, and most bulge-bracket banks filter for 1-page resumes "
-                "at analyst and associate level — a 2-page resume from a 3-year analyst is a red flag.",
-                "Private equity and VC firms receive hundreds of applications; two-page resumes "
-                "at junior level signal inability to prioritise, which is itself a disqualifier.",
-                "Senior finance roles (VP, MD, CFO) can justify 2 pages when certifications and "
-                "deal tombstones require the space — anything beyond 2 is actively penalised.",
-            ],
-            "search": "finance banking resume length best practices 2025 2026",
-            "ats": (
-                "Most finance ATS and manual processes are optimised for 1-page parsing. "
-                "Dense 2-page resumes are accepted at senior level."
-            ),
-        },
-        "legal": {
-            "labels": ["legal", "law", "attorney", "lawyer", "counsel", "solicitor",
-                       "barrister", "paralegal", "compliance"],
-            "range": "1–2",
-            "min": 1, "max": 2,
-            "rationale": (
-                "Legal resumes follow similar conventions to finance — concise and high-signal. "
-                "Partners and senior counsel with extensive matters may extend to 2 pages."
-            ),
-            "leverage": [
-                "Law firm hiring partners read dozens of resumes in sequence — a 2-page junior "
-                "resume signals poor judgment about what matters.",
-                "One page is the expectation for associates with fewer than 7 years experience.",
-            ],
-            "search": "lawyer attorney resume length best practices 2025 2026",
-            "ats": "Legal ATS systems are optimised for 1-page parsing at associate level.",
-        },
-        "creative": {
-            "labels": ["creative", "design", "designer", "marketing", "brand", "advertising",
-                       "copywriter", "content", "ux", "ui", "media", "film", "fashion"],
-            "range": "1 page + portfolio link",
-            "min": 1, "max": 1,
-            "rationale": (
-                "Creative roles treat the resume as a gateway to the portfolio. "
-                "One tight page + a portfolio link is the industry standard — the portfolio "
-                "does the heavy lifting on craft, taste, and execution."
-            ),
-            "leverage": [
-                "Creative directors at agencies receive 200+ applications per role — "
-                "a 2-page resume without a portfolio link gets binned; a 1-page with a strong "
-                "portfolio link gets clicked.",
-                "A 1-page resume forces you to surface only your best work, which itself "
-                "signals editorial judgment — the very skill you're selling.",
-                "The portfolio URL is more valuable than any bullet point — prioritise it over length.",
-            ],
-            "search": "creative designer marketing resume length portfolio 2025 2026",
-            "ats": (
-                "Most creative roles use portfolio-first review rather than ATS keyword scoring. "
-                "The resume primarily needs to pass a 7-second human scan, not an algorithm."
-            ),
-        },
-        "government": {
-            "labels": ["government", "federal", "public sector", "civil service", "military",
-                       "defence", "defense", "nsa", "cia", "fbi", "dod", "usajobs"],
-            "range": "3–7",
-            "min": 3, "max": 7,
-            "rationale": (
-                "US federal resumes (USAJOBS) require in-depth work histories including hours "
-                "worked per week, supervisor names, and full salary history. "
-                "3–5 pages is typical; complex senior roles can reach 7."
-            ),
-            "leverage": [
-                "USAJOBS applications are reviewed against a vacancy announcement point by point — "
-                "an incomplete federal resume that omits hours worked or GS-level equivalencies "
-                "is automatically disqualified, regardless of how strong the experience is.",
-                "State and local government roles also typically require 2–3 pages minimum "
-                "to satisfy HR documentation requirements.",
-            ],
-            "search": "federal government resume USAJOBS length requirements 2025 2026",
-            "ats": (
-                "USAJOBS has its own structured data entry system. The uploaded resume "
-                "supplements structured fields rather than replacing them."
-            ),
-        },
-        "academia": {
-            "labels": ["academia", "academic", "university", "college", "research", "phd",
-                       "professor", "lecturer", "postdoc", "faculty", "scholar", "science"],
-            "range": "5–15+ (CV format)",
-            "min": 5, "max": None,
-            "is_cv_format": True,
-            "rationale": (
-                "Academic positions use CV format, not resume format. "
-                "Full publication lists, grant histories, teaching experience, conference "
-                "presentations, and service records are expected. "
-                "5 pages is a minimum for a junior faculty application; "
-                "senior professors often have 15–30 page CVs."
-            ),
-            "leverage": [
-                "A truncated academic CV signals a thin publication or grant record — "
-                "search committees will assume what you've omitted is weak.",
-                "Academic hiring committees read CVs cover-to-cover for shortlisted candidates; "
-                "brevity is not a virtue in this context.",
-            ],
-            "search": "academic CV length best practices faculty application 2025",
-            "ats": (
-                "Academic ATS systems (Interfolio, Workday for universities) are configured "
-                "to accept multi-page CVs. Length is not penalised."
-            ),
-        },
-        "consulting": {
-            "labels": ["consulting", "consultant", "strategy", "mckinsey", "bcg", "bain",
-                       "deloitte", "kpmg", "pwc", "ernst", "ey ", "advisory"],
-            "range": "1–2",
-            "min": 1, "max": 2,
-            "rationale": (
-                "Consulting resumes are expected to be intensely structured and concise. "
-                "MBB firms expect 1 page for most candidates; 2 pages is acceptable for "
-                "experienced industry hires or senior manager+ level."
-            ),
-            "leverage": [
-                "McKinsey, BCG, and Bain all publish explicit guidance preferring 1-page resumes "
-                "for MBA and experienced hire applications.",
-                "A consulting resume is itself a demonstration of your ability to structure "
-                "complex information into a concise, high-impact document — "
-                "failing to do that is failing the test before the interview.",
-            ],
-            "search": "consulting strategy resume length McKinsey BCG Bain best practices 2025",
-            "ats": "Most consulting firms use human review for initial screen, not ATS.",
-        },
-    }
-
-    # ------------------------------------------------------------------ #
-    # Match industry to lookup table                                      #
-    # Use word-boundary regex so short labels like "ai" don't match      #
-    # substrings (e.g. "retail" contains the letters "ai").              #
-    # ------------------------------------------------------------------ #
-    def _matches(label: str, text: str) -> bool:
-        pattern = r"\b" + re.escape(label.strip()) + r"\b"
-        return bool(re.search(pattern, text, re.IGNORECASE))
-
     matched: Optional[Dict] = None
     for _key, data in INDUSTRY_DATA.items():
-        if any(_matches(label, ind) for label in data["labels"]):
+        if any(_label_matches(label, ind) for label in data["labels"]):
             matched = data
             break
-
-    # ------------------------------------------------------------------ #
-    # Experience-level page range (fallback when no industry match)       #
-    # ------------------------------------------------------------------ #
-    SENIORITY_DEFAULTS = {
-        "entry": {"range": "1", "min": 1, "max": 1,
-                  "rationale": "Entry-level candidates (0–5 years) should target 1 page. "
-                               "Recruiters expect brevity; a second page signals padding."},
-        "mid":   {"range": "1–2", "min": 1, "max": 2,
-                  "rationale": "Mid-level candidates (5–15 years) typically fill 1–2 pages comfortably."},
-        "senior": {"range": "2–3", "min": 2, "max": 3,
-                   "rationale": "Senior candidates (15+ years) can justify 2–3 pages with distinct roles."},
-        "exec":  {"range": "2–3", "min": 2, "max": 3,
-                  "rationale": "Executive roles (C-suite, VP+) typically require 2–3 pages to cover "
-                               "board, advisory, and strategic leadership scope."},
-    }
 
     seniority_bucket = "mid"
     for bucket in ["entry", "mid", "senior", "exec"]:
@@ -406,7 +406,7 @@ def check_resume_length_best_practice(
         seniority_bucket = "senior"
 
     if matched is None:
-        sen_data = SENIORITY_DEFAULTS[seniority_bucket]
+        sen_data = SENIORITY_DEFAULTS[seniority_bucket]  # module-level constant
         matched = {
             "range": sen_data["range"],
             "min": sen_data["min"],
