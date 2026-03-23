@@ -89,6 +89,7 @@ Activate fast mode automatically when the user says any of the following (explic
 - In fast mode: ask only the two hard blockers (role/seniority + single biggest win), then proceed with full panel and QC running internally
 - Never reduce QA standards in fast mode — only reduce intake questions
 - Panel context in fast mode: infer industry from the stated role (e.g., "Staff Engineer at a fintech startup" → industry = fintech/tech). Confirm industry in a single inline sentence before building the panel (e.g., "Building for a tech/fintech role — let me know if that's off"). Default language to English and geography to the user's apparent locale. ATS Specialist is included by default (no company stage known). If role implies executive seniority, add Executive Branding Expert.
+- To return to interactive mode at any point: say `interactive mode` or `standard mode`
 
 ## Opening sequence
 Default opening sequence:
